@@ -11,6 +11,7 @@ struct Entry{
 };
 
 struct Bucket{
+	uint64_t hash_val;
 	Entry* entry;
 };
 
@@ -31,6 +32,7 @@ class RobinHoodHash: public Hash{
 private:
 	uint64_t HashFunction(const char* data);
 	uint64_t MaxInputSize();
+
 	Bucket* buckets;
 	uint64_t n_buckets;
 	uint64_t n_buckets_used;
@@ -42,5 +44,6 @@ private:
 	int Put(const std::string& key, const std::string& value);
 	int Exists(const std::string& key);
 	int Delete(const std::string& key);
+	int GetDistanceToInitIndex(uint64_t idx, uint64_t &distance);
 
 }
