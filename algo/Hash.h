@@ -5,8 +5,8 @@
 #include <string>
 
 struct Entry{
-	uint64_t size_key;
-	uint64_t size_value;
+	uint64_t key_size;
+	uint64_t value_size;
 	char* data;
 };
 

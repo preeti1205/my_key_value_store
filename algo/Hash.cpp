@@ -74,13 +74,41 @@ int RobinHoodHash::Get(const std::string& key, std::string& value){
     	GetDistanceToInitIndex(curr_index, probe_distance);
     	if(buckets[curr_index].entry  == 0 || i > probe_distance)
     		break;
-    	//To be continued
+    	if( (buckets[curr_index].entry->key_size == key.size()) &&
+    	    (memcmp(buckets[curr_index].entry->data, key.c_str(), key.size()) == 0) )
+    		value = std::string(buckets[curr_index].entry->data + key.size(), buckets[curr_index].entry->value_size; //string(start_pos, size)
 
     }
     if(found) return 0;
     return 1;
 }
 
-int RobinHoodHash::Put(const std::string& key, const std::string& value);
+int RobinHoodHash::Put(const std::string& key, const std::string& value){
+	if(n_buckets == n_buckets_used)
+		return 1;
+
+	uint64_t hash_value = GetHashValue(key);
+	uint64_t start_bucket_idx = hash_value % n_buckets;
+	uint64_t probe_distance = 0;
+
+    std::string data_part = key + value;
+    Entry data_entry = new Entry();
+    data_entry->key_size = key.size();
+    data_entry->val_size = value.size();
+    data_entry->data = data_part.c_str();
+
+	for(uint64_t i = 0; i < probing_max; ++i){
+		int curr_index = (start_bucket_idx + i) % n_buckets;
+		GetDistanceToInitIndex(curr_index, probe_distance);
+		if(buckets[curr_index] != 0 ){
+			//ToDO
+		}
+		if(buckets[curr_index] = 0){
+			buckets[curr_index].hash_val = hash_value;
+			buckets[curr_index].entry = data_entry;
+		}
+
+	}
+}
 int RobinHoodHash::Exists(const std::string& key);
 int RobinHoodHash::Delete(const std::string& key);
