@@ -102,8 +102,8 @@ int RobinHoodHash::Put(const std::string& key, const std::string& value){
 
 	for(uint64_t i = 0; i < probing_max; ++i){
 		int curr_index = (start_bucket_idx + i) % n_buckets;
-		GetDistanceToInitIndex(curr_index, probe_distance);
 		if(buckets[curr_index] != 0 ){
+		    GetDistanceToInitIndex(curr_index, probe_distance);
 			if(probe_current > probe_distance){
 				uint64_t temp_hash_value = buckets[curr_index].hash_val;
 				Entry* temp_entry = buckets[curr_index].entry;
@@ -125,4 +125,42 @@ int RobinHoodHash::Put(const std::string& key, const std::string& value){
 	return 0;
 }
 
-int RobinHoodHash::Delete(const std::string& key);
+int RobinHoodHash::Delete(const std::string& key){  //backward shifting is being utilized
+	uint64_t hash_value = GetHashValue(key);
+	uint64_t start_bucket_idx = hash_value % n_buckets;
+	uint64_t probe_distance = 0;
+	bool found = false;
+	uint64_t i = 0;
+	uint64_t curr_index = 0
+
+	for(i = 0; i < probing_max; ++i){
+		curr_index = (start_bucket_idx + i) % n_buckets;
+		GetDistanceToInitIndex(curr_index, probe_distance);
+		if(buckets[curr_index] == 0 || i > probe_distance)
+			break;
+		if(buckets[curr_index].entry->key_size = key.size() && (memcmp(buckets[curr_index].entry->data, key.c_str(), key.size()) == 0) ){
+			//delete this entry first
+			found = true;
+		}
+	}
+
+	if(found){
+		delete buckets[curr_index].entry->data;
+		delete buckets[curr_index].entry;
+
+		for(uint64_t j = 1; j < probing_max; ++j){
+			uint64_t forward_index = (curr_index + j) % n_buckets;
+			GetDistanceToInitIndex(forward_index, probe_distance);
+			if(buckets[forward_index] == 0 || probe_distance == 0) //ending condition for backward shifting
+				break;
+			else{
+				swap(buckets[curr_index].hash_val, buckets[forward_index].hash_val);
+				swap(buckets[curr_index].entry, buckets[forward_index].entry);
+				++curr_index;
+			}
+
+		}
+		--n_buckets_used;
+	}
+
+}
