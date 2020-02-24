@@ -87,9 +87,12 @@ int RobinHoodHash::Put(const std::string& key, const std::string& value){
 	if(n_buckets == n_buckets_used)
 		return 1;
 
+	++n_buckets_used;
+
 	uint64_t hash_value = GetHashValue(key);
 	uint64_t start_bucket_idx = hash_value % n_buckets;
 	uint64_t probe_distance = 0;
+	uint64_t probe_current = 0;
 
     std::string data_part = key + value;
     Entry data_entry = new Entry();
@@ -101,14 +104,25 @@ int RobinHoodHash::Put(const std::string& key, const std::string& value){
 		int curr_index = (start_bucket_idx + i) % n_buckets;
 		GetDistanceToInitIndex(curr_index, probe_distance);
 		if(buckets[curr_index] != 0 ){
-			//ToDO
+			if(probe_current > probe_distance){
+				uint64_t temp_hash_value = buckets[curr_index].hash_val;
+				Entry* temp_entry = buckets[curr_index].entry;
+				buckets[curr_index].hash_val = hash_val;
+				buckets[curr_index].entry = data_entry;
+				hash_val = temp_hash_value;
+				data_entry = temp_entry;
+				probe_current = probe_distance;
+			}
 		}
-		if(buckets[curr_index] = 0){
+		if(buckets[curr_index] == 0){
 			buckets[curr_index].hash_val = hash_value;
 			buckets[curr_index].entry = data_entry;
+			break;
 		}
+		++probe_current;	
 
 	}
+	return 0;
 }
-int RobinHoodHash::Exists(const std::string& key);
+
 int RobinHoodHash::Delete(const std::string& key);

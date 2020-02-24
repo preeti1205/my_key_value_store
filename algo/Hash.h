@@ -42,7 +42,6 @@ private:
 	int Close();
 	int Get(const std::string& key, std::string& value);
 	int Put(const std::string& key, const std::string& value);
-	int Exists(const std::string& key);
 	int Delete(const std::string& key);
 	int GetDistanceToInitIndex(uint64_t idx, uint64_t &distance);
 
