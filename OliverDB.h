@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <options.h>
 
+#include "algo/Hash.h"
+
 class OliverDB{
 	Status open(string name);
 	Status close();
@@ -13,5 +15,6 @@ class OliverDB{
 	Iterator* NewIterator(Options);
 
 private:
+	RobinHoodHash HashMap_;
 
 };
