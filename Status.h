@@ -5,6 +5,10 @@
 #include <string>
 
 class Status{
+	Status();
+	Status(int);
+	Status(int, std::string);
+	bool IsOK();
 private:
 	int code_;
 	std::string message_;
