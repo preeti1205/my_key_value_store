@@ -5,6 +5,7 @@
 #include <mutex>
 #include <chrono>
 #include <string>
+#include "algo/Hash.h"
 
 class HSTableManager{
 public:
@@ -32,7 +33,7 @@ public:
 	                  wait_until_can_open_new_files_(false),
 	                  dbname_(db_name) {
 
-	    //hash_ = MakeHash();
+	    hash_ = RobinHoodHash();
         Reset();
 	    if (!is_read_only_) {
 	      buffer_raw_ = new char[size_block_*2];
@@ -41,12 +42,54 @@ public:
 
 	}
 
-	
+	~HSTableManager(){
+		Close();
+	}
+
+	void Close(){
+		std::unique_lock<std::mutex> lock(mutex_close_);
+		if(is_read_only_ || is_closed_) return;
+		is_closed_ = true;
+		FlushCurrentFile();      //*******
+		CloseCurrentFile();      //*******
+		delete hash_;
+		if(!is_read_only_){
+			delete[] buffer_raw_;
+			delete[] buffer_index_;
+		}
+	}
+
+	void OpenNewFile(){ 
+		//File descriptor - a number that uniquely identifies an open file in a computer's OS. File decriptors are 
+		//called file handles in Windows
+		IncrementSequenceFileID(1);        //********
+		IncrementSequenceTimestamp(1);     //********
+		filepath_ = GetFilePath(GetSequenceFileID());
+
+		while(true){
+			if( (fd_ = open(filepath_.c_str(), O_WRONLY| O_CREAT, 0644)) < 0){
+				wait_until_can_open_new_files_ = true;
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+				continue;
+			}
+			wait_until_can_open_new_files_ = false;
+			break;
+		}
+
+		has_file_ = true;
+		file_id_ = GetSequenceFileID();
+		timestamp_ = GetSequenceTimeStamp();
+
+		//HSTableHeader - Let's see if we need this
+	}
+
+
 private:
 	Hash* hash_;
 	std::string dbname_;
 	char *buffer_raw_;
     char *buffer_index_;
+    int fd_;       //file descriptor
 
 	bool is_closed_;
 	bool is_read_only_;
@@ -55,14 +98,18 @@ private:
 	bool has_sync_option_;
 	bool wait_until_can_open_new_files_;
 
+	std::mutex mutex_close_;
+
 	uint32_t file_id_;
 	uint32_t sequencefile_id_;
 	uint32_t sequence_timestamp_;
+	uint32_t timestamp_;
 	uint64_t size_block_;
 	uint64_t offset_start_;
     uint64_t offset_end_;
 	std::string prefix_;
 	std::string prefix_compaction_;
 	std::string dirpath_locks_;
+	std::string filepath_;
 
 }
